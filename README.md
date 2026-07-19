@@ -1,79 +1,121 @@
-# MapLibre + PMTiles Starter
+# NYC Hydrant Density Map
 
-A clean, commented `index.html` you can fork to start any web map. Used as the launchpad for Portfolio Project 3 (Live Web Map) in the Modern GIS Accelerator.
+Live map: [https://pamelaagreen.github.io/nyc-hydrant-map/](https://pamelaagreen.github.io/nyc-hydrant-map/)
 
-## What you get
+A web map showing NYC fire hydrant density by neighborhood, built with a fully open-source, serverless stack: MapLibre GL JS + PMTiles + GitHub Pages.
 
-- **`index.html`.** A complete working web map. Choropleth fill, click popups, legend, mobile-responsive layout. Heavily commented so you can read top-to-bottom and learn the pattern.
-- **`examples/`.** Four standalone style patterns you can copy-paste from when you need a different layer type:
-  - `choropleth.html`. Graduated color polygons (the default for thematic maps).
-  - `categorical.html`. Discrete category fills (boroughs, land use, types).
-  - `circles.html`. Proportional circles with both zoom and attribute scaling.
-  - `lines.html`. Styled line layer with category color and zoom-responsive width.
-- **No build step.** All dependencies load from CDN. Open `index.html` in a browser and it works.
+## The question
 
-## How to use it
+Where is hydrant coverage densest in NYC, and which neighborhoods are relatively underserved compared with their area?
 
-1. **Fork or clone** this folder into a new repo named `your-project-name`.
-2. **Generate your PMTiles file** with `tippecanoe` (see R3.3 for the flag reference).
-3. **Replace `HYDRANT_DATA_URL`** in `index.html` with the URL where you'll host your `.pmtiles` file (typically a GitHub Pages URL).
-4. **Update the layer's `source-layer` name** to match the layer name in your PMTiles (set by tippecanoe with `-l`).
-5. **Edit the legend HTML** and the paint expression breaks to match your data range.
-6. **Push to GitHub, enable Pages**, and your map is live (see R3.4 for the deployment checklist).
+## Repository contents
 
-## How to test locally
+This repo contains two main pieces:
 
-You can open `index.html` directly in a browser, but PMTiles loaded from a remote URL needs to be served, not opened from `file://`. Run a tiny local server first:
+1. `generate_pmtiles.sh`  
+   A shell script that converts the neighborhood-density GeoJSON into a PMTiles archive for efficient web delivery.
+
+2. `index.html`  
+   A static MapLibre map that loads the PMTiles file directly from GitHub Pages and styles neighborhood polygons by hydrants per km².
+
+## The data
+
+- NYC Neighborhoods: 262 polygons (NYC Open Data)
+- NYC Fire Hydrants: 109,725 points (NYC Open Data)
+- Density metric: hydrants per km²
+- Density processing was completed upstream in PP2 using PostGIS and GeoPandas.
+
+## Why this stack
+
+- **MapLibre GL JS** for rendering interactive vector maps in the browser, with no vendor lock-in.
+- **PMTiles** for the thematic layer, a single-file tiled archive that can be hosted on static storage without a tile server.
+- **tippecanoe** for vector tile generation, including explicit layer naming and optimization for browser rendering.
+- **GitHub Pages** for hosting, which works well for static apps and PMTiles range requests when files are publicly accessible.
+
+Total monthly cost: $0  
+Total servers running: 0
+
+## Workflow
+
+### 1. Generate the PMTiles archive
+
+The shell script takes the precomputed neighborhood density GeoJSON and creates a `.pmtiles` file ready for MapLibre.
+
+Example (from the repo root):
 
 ```bash
-# Python (built in)
-python3 -m http.server 8000
-
-# Or Node
-npx http-server -p 8000
+./generate_pmtiles.sh
 ```
 
-Then visit `http://localhost:8000` in your browser.
+Expected output:
 
-## What's in the bare `index.html`
+```text
+nyc_neighborhood_hydrant_density.pmtiles
+```
 
-Read top to bottom. Sections are commented:
+### 2. Serve or publish the map
 
-1. **Head.** CDN imports for MapLibre and the PMTiles protocol handler. Inline CSS for the map container, legend, and mobile breakpoints.
-2. **Body.** Title bar, legend card, and the `#map` div MapLibre renders into.
-3. **Script step 1.** Register the PMTiles protocol with MapLibre.
-4. **Script step 2.** Initialize the map. Default center is NYC. Replace with your area.
-5. **Script step 3.** Add the data source and the styled layer when the basemap finishes loading.
-6. **Script step 4.** Hover and click interactions for the popup.
+For local testing:
 
-## The mental model
+```bash
+python3 -m http.server 8000
+```
 
-Three concepts hold the whole library together:
+Then open:
 
-- **Source.** Where the data lives. For PMTiles, it's the URL prefixed with `pmtiles://`.
-- **Layer.** How a chunk of the source data is drawn. One source can feed many layers. Layer types: `fill`, `line`, `circle`, `symbol`, `raster`.
-- **Style (paint).** The visual properties of a layer. Expressed as expressions like `["step", ["get", "column"], color, break, color, ...]`.
+```text
+http://localhost:8000
+```
 
-If you internalize source → layer → style, the rest of MapLibre is mostly looking up the right paint expression.
+For production, publish the repo with GitHub Pages and host both:
 
-## Common gotchas
+- `index.html`
+- `nyc_neighborhood_hydrant_density.pmtiles`
 
-**Map is blank.** Open browser dev tools (F12). Console errors usually tell you exactly what's wrong. Most common: a missing comma in the style expression.
+in the same site/repo path.
 
-**PMTiles URL doesn't load.** Check three things: (1) the URL is reachable in a browser by itself, (2) the host serves it with proper CORS headers (GitHub Pages does by default), (3) you've prefixed it with `pmtiles://`.
+## Map configuration notes
 
-**`source-layer` not found.** The layer name inside the PMTiles file is set by `tippecanoe -l <name>`. Default is the input filename. Open the PMTiles file with `pmtiles show <file>` to confirm.
+The MapLibre app depends on three values being correct:
 
-**Popup shows `undefined`.** The property name in your code doesn't match what's in the tile. Use `console.log(e.features[0].properties)` inside the click handler to see what's actually there.
+1. The PMTiles URL must point to the publicly hosted `.pmtiles` file.
+2. The MapLibre layer `"source-layer"` must match the internal vector layer name inside the PMTiles archive.
+3. The style expression field names must match the actual feature attributes inside the archive.
 
-## What this is preparing you for
+For this tileset:
 
-This template is the launchpad for PP3. After you finish PP3, the same `index.html` pattern carries forward to:
+- PMTiles file: `nyc_neighborhood_hydrant_density.pmtiles`
+- Internal vector layer: `neighborhood_density`
+- Density field used for styling: `hydrants_per_km2`
 
-- The capstone project in Part 4 (Overture-scale data via DuckDB → PMTiles → MapLibre).
-- Any future client work where you need a public-facing web map.
-- Most modern web mapping job interviews. The "explain how MapLibre works" question becomes a 60-second answer once you've published this once.
+## Lessons learned
 
-## License
+### PMTiles generation
 
-MIT. Fork freely.
+- The PMTiles file can be valid and load correctly, but the browser map will still render nothing if the internal vector layer name is not entered exactly as `"source-layer"` in MapLibre.
+- The PMTiles viewer (pmtiles.io) is the fastest way to verify both the internal layer name and the feature attribute names before debugging the web map.
+- If the basemap loads but the thematic layer does not, the problem is often not hosting; it’s usually a mismatch in `"source-layer"` or in the property name used in the paint expression.
+- Browser DevTools help confirm that the `.pmtiles` file is loading successfully via HTTP range requests, which narrows debugging to style configuration rather than file access.
+
+## Debugging checklist
+
+If the PMTiles layer does not appear:
+1. Open browser DevTools and check the **Network** tab for successful `.pmtiles` requests.
+2. Confirm the file is publicly reachable from its GitHub Pages URL.
+3. Open the same URL in the [PMTiles viewer](https://pmtiles.io/).
+4. Check:
+   - `vector_layers[].id` → use this as `"source-layer"`.
+   - Feature properties → use these exact names in `["get", "..."]`.
+5. If needed, add a temporary solid-color debug layer to confirm geometry is drawing before applying data‑driven styling.
+
+## Stack
+
+- MapLibre GL JS
+- PMTiles JS
+- tippecanoe
+- GitHub Pages
+
+## Acknowledgments
+
+- NYC Open Data for the source datasets.
+- The MapLibre and PMTiles open-source projects for making static, low-cost geospatial publishing practical.

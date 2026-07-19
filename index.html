@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -9,18 +10,27 @@
        MapLibre GL JS (the renderer) and the PMTiles protocol
        handler. Both load from CDN, no build step.
        =========================================================== -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/maplibre-gl@4.5.2/dist/maplibre-gl.css"
-  />
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.5.2/dist/maplibre-gl.css" />
   <script src="https://unpkg.com/maplibre-gl@4.5.2/dist/maplibre-gl.js"></script>
   <script src="https://unpkg.com/pmtiles@3.2.0/dist/pmtiles.js"></script>
 
   <style>
     /* ---------- Base layout ---------- */
-    html, body { margin: 0; padding: 0; height: 100%; font-family:
-      -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family:
+        -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    #map {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+    }
 
     /* ---------- Legend (bottom-left card) ---------- */
     .legend {
@@ -36,12 +46,31 @@
       z-index: 1;
       max-width: 220px;
     }
-    .legend h4 { margin: 0 0 6px 0; font-size: 13px; font-weight: 600; }
-    .legend .row { display: flex; align-items: center; gap: 8px; }
-    .legend .swatch {
-      width: 14px; height: 14px; display: inline-block; border-radius: 2px;
+
+    .legend h4 {
+      margin: 0 0 6px 0;
+      font-size: 13px;
+      font-weight: 600;
     }
-    .legend .source { margin-top: 8px; font-size: 11px; color: #666; }
+
+    .legend .row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .legend .swatch {
+      width: 14px;
+      height: 14px;
+      display: inline-block;
+      border-radius: 2px;
+    }
+
+    .legend .source {
+      margin-top: 8px;
+      font-size: 11px;
+      color: #666;
+    }
 
     /* ---------- Title bar (top-left) ---------- */
     .title-bar {
@@ -59,12 +88,25 @@
 
     /* ---------- Mobile breakpoints ---------- */
     @media (max-width: 600px) {
-      .legend, .title-bar { left: 12px; right: 12px; max-width: none; }
-      .legend { bottom: 12px; }
-      .title-bar { top: 12px; }
+
+      .legend,
+      .title-bar {
+        left: 12px;
+        right: 12px;
+        max-width: none;
+      }
+
+      .legend {
+        bottom: 12px;
+      }
+
+      .title-bar {
+        top: 12px;
+      }
     }
   </style>
 </head>
+
 <body>
   <div class="title-bar">NYC Hydrant Density</div>
 
@@ -109,8 +151,8 @@
     // STEP 3: When the basemap finishes loading, add your data.
     // Replace HYDRANT_DATA_URL with your own .pmtiles URL.
     // =============================================================
-    const HYDRANT_DATA_URL = "https://your-host.example.com/hydrant_density.pmtiles";
-
+    // const HYDRANT_DATA_URL = "https://your-host.example.com/hydrant_density.pmtiles";
+    const HYDRANT_DATA_URL = "https://pamelaagreen.github.io/nyc-hydrant-map/nyc_neighborhood_hydrant_density.pmtiles";
     map.on("load", () => {
       // Add the PMTiles source. The "pmtiles://" prefix tells
       // MapLibre to use the registered protocol.
@@ -135,7 +177,7 @@
             "step",
             ["get", "density_per_km2"],
             "#fde725",
-            50,  "#90d743",
+            50, "#90d743",
             150, "#35b779",
             300, "#21918c",
             500, "#3b528b"
@@ -196,4 +238,5 @@
     });
   </script>
 </body>
+
 </html>
